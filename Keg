@@ -1,0 +1,9 @@
+;; Keg
+
+(source gnu melpa)
+
+(package
+ (eglot-lsp-settings
+  (recipe . (eglot-lsp-settings :fetcher github :repo "conao3/eglot-lsp-settings.el"))))
+
+(dev-dependency cort)
