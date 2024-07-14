@@ -105,19 +105,20 @@
   (eglot-lsp-settings--display-buffer)
   (eglot-lsp-settings--initialize-buffer)
   (setq eglot-lsp-settings-process
-        (make-process
-         :name "eglot-lsp-settings"
-         :buffer eglot-lsp-settings-buffer-name
-         :command command
-         :filter (lambda (proc string)
-                   (eshell-interactive-process-filter proc string)
-                   (eglot-lsp-settings--auto-scroll-buffer))
-         :sentinel (lambda (proc event)
-                     (with-current-buffer eglot-lsp-settings-buffer-name
-                       (save-excursion
-                         (goto-char (point-max))
-                         (insert (format "\nProcess %s %s" proc event))))
-                     (eglot-lsp-settings--auto-scroll-buffer)))))
+        (let ((default-directory eglot-lsp-settings-dir))
+          (make-process
+           :name "eglot-lsp-settings"
+           :buffer eglot-lsp-settings-buffer-name
+           :command command
+           :filter (lambda (proc string)
+                     (eshell-interactive-process-filter proc string)
+                     (eglot-lsp-settings--auto-scroll-buffer))
+           :sentinel (lambda (proc event)
+                       (with-current-buffer eglot-lsp-settings-buffer-name
+                         (save-excursion
+                           (goto-char (point-max))
+                           (insert (format "\nProcess %s %s" proc event))))
+                       (eglot-lsp-settings--auto-scroll-buffer))))))
 
 (defun eglot-lsp-settings--ensure-vim-lsp-settings ()
   "Initialize dependency."
