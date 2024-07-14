@@ -155,4 +155,5 @@
                       (seq-partition obj 2))))))
 
 (provide 'eglot-lsp-settings)
+
 ;;; eglot-lsp-settings.el ends here
