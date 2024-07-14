@@ -60,6 +60,17 @@
   "PLIST for map function."
   (seq-partition plist 2))
 
+(defun eglot-lsp-settings--split-name (name)
+  "Convert NAME into (filetype . command)."
+  (let ((strs (split-string name "/")))
+    (cons (car strs) (string-join (cdr strs) "_"))))
+
+(defun eglot-lsp-settings--shell-script-ext ()
+  "Return shell script extention."
+  (if (string= system-type "windows-nt")
+      "cmd"
+    "sh"))
+
 (defun eglot-lsp-settings--ensure-buffer ()
   "Create `eglot-lsp-settings' buffer."
   (let ((initializep (not (get-buffer eglot-lsp-settings-buffer-name)))
@@ -116,26 +127,26 @@
   (when (process-live-p eglot-lsp-settings-process)
     (error "Process is now running"))
   (setq eglot-lsp-settings-process
-        (let ((default-directory eglot-lsp-settings-dir))
-          (make-process
-           :name "eglot-lsp-settings"
-           :buffer eglot-lsp-settings-buffer-name
-           :command command
-           :filter (lambda (proc string)
-                     (eshell-interactive-process-filter proc string)
-                     (eglot-lsp-settings--auto-scroll-buffer))
-           :sentinel (lambda (proc event)
-                       (with-current-buffer eglot-lsp-settings-buffer-name
-                         (save-excursion
-                           (goto-char (point-max))
-                           (insert (format "\nProcess %s %s" proc event))))
-                       (eglot-lsp-settings--auto-scroll-buffer))))))
+        (make-process
+         :name "eglot-lsp-settings"
+         :buffer eglot-lsp-settings-buffer-name
+         :command command
+         :filter (lambda (proc string)
+                   (eshell-interactive-process-filter proc string)
+                   (eglot-lsp-settings--auto-scroll-buffer))
+         :sentinel (lambda (proc event)
+                     (with-current-buffer eglot-lsp-settings-buffer-name
+                       (save-excursion
+                         (goto-char (point-max))
+                         (insert (format "\nProcess %s %s" proc event))))
+                     (eglot-lsp-settings--auto-scroll-buffer)))))
 
 (defun eglot-lsp-settings--ensure-vim-lsp-settings ()
   "Initialize dependency."
   (eglot-lsp-settings--assert-command "git")
-  (eglot-lsp-settings--make-process
-   '("git" "clone" "https://github.com/mattn/vim-lsp-settings.git")))
+  (let ((default-directory eglot-lsp-settings-dir))
+    (eglot-lsp-settings--make-process
+     '("git" "clone" "https://github.com/mattn/vim-lsp-settings.git"))))
 
 (defvar eglot-lsp-settings--load-settings--cached nil)
 (defun eglot-lsp-settings--load-settings ()
@@ -162,10 +173,23 @@
   "Install NAME server."
   (interactive (list (completing-read
                       "Server: "
-                      (mapcar (lambda (elm) (car elm))
+                      (mapcar (lambda (elm) (substring (symbol-name (car elm)) 1))
                               (eglot-lsp-settings--plist-kv
                                (eglot-lsp-settings--load-settings))))))
-  (message name))
+  (let* ((stem (eglot-lsp-settings--split-name name))
+         (default-directory (eglot-lsp-settings--expand-file-name
+                             (list "server"
+                                   (format "%s_%s" (car stem) (cdr stem)))))
+         (script-path (eglot-lsp-settings--expand-file-name
+                       (list "vim-lsp-settings"
+                             "installer"
+                             (format "install-%s.%s"
+                                     (cdr stem)
+                                     (eglot-lsp-settings--shell-script-ext))))))
+    (when (file-directory-p default-directory)
+      (error "%s is already installed" name))
+    (eglot-lsp-settings--ensure-dir default-directory)
+    (eglot-lsp-settings--make-process (list script-path))))
 
 (provide 'eglot-lsp-settings)
 
