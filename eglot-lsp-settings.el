@@ -197,6 +197,7 @@
           (eglot-lsp-settings--plist-kv
            (eglot-lsp-settings--load-settings))))
 
+;;;###autoload
 (defun eglot-lsp-settings-install-server (name)
   "Install NAME server."
   (interactive (list (completing-read "Server: " (eglot-lsp-settings--auto-installable-servers))))
