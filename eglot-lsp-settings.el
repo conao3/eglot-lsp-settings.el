@@ -28,6 +28,7 @@
 
 ;;; Code:
 
+(require 'json)
 (require 'eshell)
 (require 'esh-mode)                     ; eshell-interactive-filter
 
@@ -82,6 +83,11 @@
      (make-directory dir* 'parent))
     dir*))
 
+(defun eglot-lsp-settings--expand-file-name (paths)
+  "Expand PATHS based `eglot-lsp-settings' dir."
+  (cl-reduce (lambda (prev cur) (expand-file-name cur prev))
+             (cons eglot-lsp-settings-dir paths)))
+
 (defun eglot-lsp-settings--assert-command (command)
   "Check COMMAND in variable `exec-path'."
   (or (executable-find command)
@@ -126,6 +132,13 @@
   (eglot-lsp-settings--assert-command "git")
   (eglot-lsp-settings--make-process
    '("git" "clone" "https://github.com/mattn/vim-lsp-settings.git")))
+
+(defun eglot-lsp-settings--load-settings ()
+  "Load vim-lsp-settings settings.json."
+  (let ((json-object-type 'plist)
+        (json-array-type 'list)
+        (json-key-type 'keyword))
+    (json-read-file (eglot-lsp-settings--expand-file-name '("vim-lsp-settings" "settings.json")))))
 
 (provide 'eglot-lsp-settings)
 ;;; eglot-lsp-settings.el ends here
