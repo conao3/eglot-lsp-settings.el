@@ -56,6 +56,10 @@
 (defvar eglot-lsp-settings-process nil
   "Process for `eglot-lsp-settings'.")
 
+(defun eglot-lsp-settings--plist-kv (plist)
+  "PLIST for map function."
+  (seq-partition plist 2))
+
 (defun eglot-lsp-settings--ensure-buffer ()
   "Create `eglot-lsp-settings' buffer."
   (let ((initializep (not (get-buffer eglot-lsp-settings-buffer-name)))
@@ -152,7 +156,16 @@
                                        (intern (format "%s/%s" key (plist-get e :command)))
                                        e))
                                     val))))
-                      (seq-partition obj 2))))))
+                      (eglot-lsp-settings--plist-kv obj))))))
+
+(defun eglot-lsp-settings-install-server (name)
+  "Install NAME server."
+  (interactive (list (completing-read
+                      "Server: "
+                      (mapcar (lambda (elm) (car elm))
+                              (eglot-lsp-settings--plist-kv
+                               (eglot-lsp-settings--load-settings))))))
+  (message name))
 
 (provide 'eglot-lsp-settings)
 
