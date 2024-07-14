@@ -133,12 +133,16 @@
   (eglot-lsp-settings--make-process
    '("git" "clone" "https://github.com/mattn/vim-lsp-settings.git")))
 
+(defvar eglot-lsp-settings--load-settings--cached nil)
 (defun eglot-lsp-settings--load-settings ()
   "Load vim-lsp-settings settings.json."
-  (let ((json-object-type 'plist)
-        (json-array-type 'list)
-        (json-key-type 'keyword))
-    (json-read-file (eglot-lsp-settings--expand-file-name '("vim-lsp-settings" "settings.json")))))
+  (or eglot-lsp-settings--load-settings--cached
+      (setq eglot-lsp-settings--load-settings--cached
+            (let ((json-object-type 'plist)
+                  (json-array-type 'list)
+                  (json-key-type 'keyword))
+              (json-read-file
+               (eglot-lsp-settings--expand-file-name '("vim-lsp-settings" "settings.json")))))))
 
 (provide 'eglot-lsp-settings)
 ;;; eglot-lsp-settings.el ends here
