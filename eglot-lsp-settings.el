@@ -138,11 +138,21 @@
   "Load vim-lsp-settings settings.json."
   (or eglot-lsp-settings--load-settings--cached
       (setq eglot-lsp-settings--load-settings--cached
-            (let ((json-object-type 'plist)
-                  (json-array-type 'list)
-                  (json-key-type 'keyword))
-              (json-read-file
-               (eglot-lsp-settings--expand-file-name '("vim-lsp-settings" "settings.json")))))))
+            (let ((obj (let ((json-object-type 'plist)
+                             (json-array-type 'list)
+                             (json-key-type 'keyword))
+                         (json-read-file
+                          (eglot-lsp-settings--expand-file-name '("vim-lsp-settings" "settings.json"))))))
+              (mapcan (lambda (elm)
+                        (let ((key (car elm))
+                              (val (cadr elm)))
+                          (when (listp val)
+                            (mapcan (lambda (e)
+                                      (list
+                                       (intern (format "%s/%s" key (plist-get e :command)))
+                                       e))
+                                    val))))
+                      (seq-partition obj 2))))))
 
 (provide 'eglot-lsp-settings)
 ;;; eglot-lsp-settings.el ends here
