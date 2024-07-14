@@ -75,12 +75,12 @@
       (with-selected-window win
         (goto-char (point-max))))))
 
-(defun eglot-lsp-settings--ensure-dir ()
-  "Create `eglot-lsp-settings' dir."
-  (let ((dir (expand-file-name eglot-lsp-settings-dir)))
-    (unless (file-directory-p dir)
-      (make-directory eglot-lsp-settings-dir 'parent))
-    dir))
+(defun eglot-lsp-settings--ensure-dir (dir)
+  "Make direcory DIR if not exists."
+  (let ((dir* (expand-file-name dir)))
+    (unless (file-directory-p dir*)
+     (make-directory dir* 'parent))
+    dir*))
 
 (defun eglot-lsp-settings--assert-command (command)
   "Check COMMAND in variable `exec-path'."
@@ -101,7 +101,7 @@
 
 (defun eglot-lsp-settings--make-process (command)
   "Run COMMAND at eglot-lsp-settings buffer."
-  (eglot-lsp-settings--ensure-dir)
+  (eglot-lsp-settings--ensure-dir eglot-lsp-settings-dir)
   (eglot-lsp-settings--display-buffer)
   (eglot-lsp-settings--initialize-buffer)
   (setq eglot-lsp-settings-process
