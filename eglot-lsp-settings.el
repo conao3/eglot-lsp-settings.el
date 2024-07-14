@@ -28,11 +28,96 @@
 
 ;;; Code:
 
+(require 'eshell)
+
 (defgroup eglot-lsp-settings nil
   "Auto install Language-Server powered by vim-lsp-settings."
   :group 'convenience
   :link '(url-link :tag "Github" "https://github.com/conao3/eglot-lsp-settings.el"))
 
-(provide 'eglot-lsp-settings)
+(defcustom eglot-lsp-settings-dir (locate-user-emacs-file "eglot-lsp-settings")
+  "Directory for `eglot-lsp-settings'."
+  :group 'eglot-lsp-settings
+  :type 'directory)
 
+(defcustom eglot-lsp-settings-vim-lsp-settings-dir
+  (expand-file-name "vim-lsp-settings" eglot-lsp-settings-dir)
+  "Directory vim-lsp-settings cloning into."
+  :group 'eglot-lsp-settings
+  :type 'directory)
+
+(defcustom eglot-lsp-settings-buffer-name "*eglot-lsp-settings*"
+  "Buffer name for `eglot-lsp-settings'."
+  :group 'eglot-lsp-settings
+  :type 'string)
+
+(defvar eglot-lsp-settings-process nil
+  "Process for `eglot-lsp-settings'.")
+
+(defun eglot-lsp-settings--ensure-buffer ()
+  "Create `eglot-lsp-settings' buffer."
+  (get-buffer-create eglot-lsp-settings-buffer-name))
+
+(defun eglot-lsp-settings--display-buffer ()
+  "Display `eglot-lsp-settings' buffer."
+  (display-buffer (eglot-lsp-settings--ensure-buffer)))
+
+(defun eglot-lsp-settings--auto-scroll-buffer ()
+  "Autoscroll to bottom."
+  (let ((buf (eglot-lsp-settings--ensure-buffer)))
+    (dolist (win (get-buffer-window-list buf nil 'all-frame))
+      (with-selected-window win
+        (goto-char (point-max))))))
+
+(defun eglot-lsp-settings--ensure-dir ()
+  "Create `eglot-lsp-settings' dir."
+  (let ((dir (expand-file-name eglot-lsp-settings-dir)))
+    (unless (file-directory-p dir)
+      (make-directory eglot-lsp-settings-dir 'parent))
+    dir))
+
+(defun eglot-lsp-settings--assert-command (command)
+  "Check COMMAND in variable `exec-path'."
+  (unless (executable-find command)
+    (error (format "Missing `%s'" command)))
+  command)
+
+(defun eglot-lsp-settings--initialize-buffer ()
+  "Initialize `eglot-lsp-settings' buffer to run new command."
+  (with-current-buffer (eglot-lsp-settings--ensure-buffer)
+    (save-excursion
+      (goto-char (point-max))
+      (set (make-local-variable 'eshell-last-input-start) (point-marker))
+      (set (make-local-variable 'eshell-last-input-end) (point-marker))
+      (set (make-local-variable 'eshell-last-output-start) (point-marker))
+      (set (make-local-variable 'eshell-last-output-end) (point-marker))
+      (set (make-local-variable 'eshell-last-output-block-begin) (point)))))
+
+(defun eglot-lsp-settings--make-process (command)
+  "Run COMMAND at eglot-lsp-settings buffer."
+  (eglot-lsp-settings--ensure-dir)
+  (eglot-lsp-settings--display-buffer)
+  (eglot-lsp-settings--initialize-buffer)
+  (setq eglot-lsp-settings-process
+        (make-process
+         :name "eglot-lsp-settings"
+         :buffer eglot-lsp-settings-buffer-name
+         :command command
+         :filter (lambda (proc string)
+                   (eshell-interactive-process-filter proc string)
+                   (eglot-lsp-settings--auto-scroll-buffer))
+         :sentinel (lambda (proc event)
+                     (with-current-buffer eglot-lsp-settings-buffer-name
+                       (save-excursion
+                         (goto-char (point-max))
+                         (insert (format "\nProcess %s %s" proc event))))
+                     (eglot-lsp-settings--auto-scroll-buffer)))))
+
+(defun eglot-lsp-settings--ensure-vim-lsp-settings ()
+  "Initialize dependency."
+  (eglot-lsp-settings--assert-command "git")
+  (eglot-lsp-settings--make-process
+   '("git" "clone" "https://github.com/mattn/vim-lsp-settings.git")))
+
+(provide 'eglot-lsp-settings)
 ;;; eglot-lsp-settings.el ends here
