@@ -103,6 +103,8 @@
   (eglot-lsp-settings--ensure-dir eglot-lsp-settings-dir)
   (eglot-lsp-settings--display-buffer)
   (eglot-lsp-settings--initialize-buffer)
+  (when (process-live-p eglot-lsp-settings-process)
+    (error "Process is now running"))
   (setq eglot-lsp-settings-process
         (let ((default-directory eglot-lsp-settings-dir))
           (make-process
