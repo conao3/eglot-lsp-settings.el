@@ -169,6 +169,17 @@
                                     val))))
                       (eglot-lsp-settings--plist-kv obj))))))
 
+(defun eglot-lsp-settings--servers ()
+  "Return server name list."
+  (mapcan (lambda (elm)
+            (let* ((key (car elm))
+                   (val (cdr elm))
+                   (name (substring (symbol-name key) 1)))
+              (when val
+                (list name))))
+          (eglot-lsp-settings--plist-kv
+           (eglot-lsp-settings--load-settings))))
+
 (defun eglot-lsp-settings--auto-installable-servers ()
   "Return auto-installable server name list."
   (mapcan (lambda (elm)
