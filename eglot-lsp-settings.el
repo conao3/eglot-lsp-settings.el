@@ -106,7 +106,7 @@
 (defun eglot-lsp-settings--assert-command (command)
   "Check COMMAND in variable `exec-path'."
   (or (executable-find command)
-      (error (format "Missing `%s'" command))))
+      (error (format "Requires `%s' executable" command))))
 
 (defun eglot-lsp-settings--initialize-buffer ()
   "Initialize `eglot-lsp-settings' buffer to run new command."
@@ -176,7 +176,10 @@
                       (mapcar (lambda (elm) (substring (symbol-name (car elm)) 1))
                               (eglot-lsp-settings--plist-kv
                                (eglot-lsp-settings--load-settings))))))
-  (let* ((stem (eglot-lsp-settings--split-name name))
+  (let* ((settings (or (plist-get (eglot-lsp-settings--load-settings)
+                                  (intern (format ":%s" name)))
+                       (error "Unrecognized server: %s" name)))
+         (stem (eglot-lsp-settings--split-name name))
          (default-directory (eglot-lsp-settings--expand-file-name
                              (list "server"
                                    (format "%s_%s" (car stem) (cdr stem)))))
@@ -188,8 +191,13 @@
                                      (eglot-lsp-settings--shell-script-ext))))))
     (when (file-directory-p default-directory)
       (error "%s is already installed" name))
+    (dolist (cmd (plist-get settings :requires))
+      (eglot-lsp-settings--assert-command cmd))
     (eglot-lsp-settings--ensure-dir default-directory)
-    (eglot-lsp-settings--make-process (list script-path))))
+    (eglot-lsp-settings--make-process (if (string= "sh" (eglot-lsp-settings--shell-script-ext))
+                                          ;; IMO, we should use bash instead of sh.
+                                          (list "/usr/bin/env" "bash" "-x" script-path)
+                                        (list script-path)))))
 
 (provide 'eglot-lsp-settings)
 
