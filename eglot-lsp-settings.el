@@ -169,13 +169,26 @@
                                     val))))
                       (eglot-lsp-settings--plist-kv obj))))))
 
+(defun eglot-lsp-settings--auto-installable-servers ()
+  "Return auto-installable server name list."
+  (mapcan (lambda (elm)
+            (let* ((key (car elm))
+                   (_val (cdr elm))
+                   (name (substring (symbol-name key) 1))
+                   (stem (eglot-lsp-settings--split-name name))
+                   (ext (eglot-lsp-settings--shell-script-ext))
+                   (script-path (eglot-lsp-settings--expand-file-name
+                                 (list "vim-lsp-settings"
+                                       "installer"
+                                       (format "install-%s.%s" (cdr stem) ext)))))
+              (when (file-exists-p script-path)
+                (list name))))
+          (eglot-lsp-settings--plist-kv
+           (eglot-lsp-settings--load-settings))))
+
 (defun eglot-lsp-settings-install-server (name)
   "Install NAME server."
-  (interactive (list (completing-read
-                      "Server: "
-                      (mapcar (lambda (elm) (substring (symbol-name (car elm)) 1))
-                              (eglot-lsp-settings--plist-kv
-                               (eglot-lsp-settings--load-settings))))))
+  (interactive (list (completing-read "Server: " (eglot-lsp-settings--auto-installable-servers))))
   (let* ((settings (or (plist-get (eglot-lsp-settings--load-settings)
                                   (intern (format ":%s" name)))
                        (error "Unrecognized server: %s" name)))
@@ -196,7 +209,7 @@
     (eglot-lsp-settings--ensure-dir default-directory)
     (eglot-lsp-settings--make-process (if (string= "sh" (eglot-lsp-settings--shell-script-ext))
                                           ;; IMO, we should use bash instead of sh.
-                                          (list "/usr/bin/env" "bash" "-x" script-path)
+                                          (list "/usr/bin/env" "bash" "-ex" script-path)
                                         (list script-path)))))
 
 (provide 'eglot-lsp-settings)
