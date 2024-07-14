@@ -84,9 +84,8 @@
 
 (defun eglot-lsp-settings--assert-command (command)
   "Check COMMAND in variable `exec-path'."
-  (unless (executable-find command)
-    (error (format "Missing `%s'" command)))
-  command)
+  (or (executable-find command)
+      (error (format "Missing `%s'" command))))
 
 (defun eglot-lsp-settings--initialize-buffer ()
   "Initialize `eglot-lsp-settings' buffer to run new command."
