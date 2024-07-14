@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'eshell)
+(require 'esh-mode)                     ; eshell-interactive-filter
 
 (defgroup eglot-lsp-settings nil
   "Auto install Language-Server powered by vim-lsp-settings."
@@ -56,7 +57,12 @@
 
 (defun eglot-lsp-settings--ensure-buffer ()
   "Create `eglot-lsp-settings' buffer."
-  (get-buffer-create eglot-lsp-settings-buffer-name))
+  (let ((initializep (not (get-buffer eglot-lsp-settings-buffer-name)))
+        (buf (get-buffer-create eglot-lsp-settings-buffer-name)))
+    (when initializep
+      (with-current-buffer buf
+        (fundamental-mode)))            ; TODO: create `eglot-lsp-settings-message-mode'
+    buf))
 
 (defun eglot-lsp-settings--display-buffer ()
   "Display `eglot-lsp-settings' buffer."
