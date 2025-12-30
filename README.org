@@ -1,90 +1,94 @@
-#+author: conao3
-#+date: <2020-03-20 Fri>
+#+title: eglot-lsp-settings
+#+author: Naoya Yamashita
 
-[[https://github.com/conao3/eglot-lsp-settings.el][https://raw.githubusercontent.com/conao3/files/master/blob/headers/png/eglot-lsp-settings.el.png]]
 [[https://github.com/conao3/eglot-lsp-settings.el/blob/master/LICENSE][https://img.shields.io/github/license/conao3/eglot-lsp-settings.el.svg?style=flat-square]]
 [[https://github.com/conao3/eglot-lsp-settings.el/releases][https://img.shields.io/github/tag/conao3/eglot-lsp-settings.el.svg?style=flat-square]]
 [[https://github.com/conao3/eglot-lsp-settings.el/actions][https://github.com/conao3/eglot-lsp-settings.el/workflows/Main%20workflow/badge.svg]]
-[[https://app.codacy.com/project/conao3/eglot-lsp-settings.el/dashboard][https://img.shields.io/codacy/grade/62a36f4f04524d5e8c758440e8071c45.svg?logo=codacy&style=flat-square]]
-[[https://www.patreon.com/conao3][https://img.shields.io/badge/patreon-become%20a%20patron-orange.svg?logo=patreon&style=flat-square]]
-[[https://twitter.com/conao_3][https://img.shields.io/badge/twitter-@conao__3-blue.svg?logo=twitter&style=flat-square]]
-[[https://conao3-support.slack.com/join/shared_invite/enQtNjUzMDMxODcyMjE1LWUwMjhiNTU3Yjk3ODIwNzAxMTgwOTkxNmJiN2M4OTZkMWY0NjI4ZTg4MTVlNzcwNDY2ZjVjYmRiZmJjZDU4MDE][https://img.shields.io/badge/chat-on_slack-blue.svg?logo=slack&style=flat-square]]
 
-* Table of Contents
-- [[#description][Description]]
-- [[#install][Install]]
-- [[#usage][Usage]]
-- [[#customize][Customize]]
-- [[#information][Information]]
-  - [[#community][Community]]
-  - [[#contribution][Contribution]]
-  - [[#migration][Migration]]
-  - [[#license][License]]
-  - [[#author][Author]]
-  - [[#contributors][Contributors]]
+* Overview
 
-* Description
+*eglot-lsp-settings* provides automatic language server installation for [[https://github.com/joaotavora/eglot][Eglot]], the built-in LSP client in Emacs. Powered by [[https://github.com/mattn/vim-lsp-settings][vim-lsp-settings]], it offers seamless setup for a wide variety of programming languages without manual configuration.
+
 [[https://github.com/conao3/eglot-lsp-settings.el][https://raw.githubusercontent.com/conao3/files/master/blob/eglot-lsp-settings.el/eglot-lsp-settings.gif]]
 
-Auto install Language-Server powered by vim-lsp-settings.
+** Features
 
-* Install
-Sample install code using [[https://github.com/conao3/leaf.el][leaf.el]].
+- Automatic installation of language servers via interactive selection
+- Support for 100+ language servers through vim-lsp-settings
+- Minimal configuration required
+- Cross-platform support (Linux, macOS, Windows)
+
+* Requirements
+
+- Emacs 26.1 or later
+- Git (for cloning vim-lsp-settings)
+- Build tools required by individual language servers
+
+* Installation
+
+** Using package.el
 
 #+begin_src emacs-lisp
-  (leaf eglot-lsp-settings :ensure t)
+(package-install 'eglot-lsp-settings)
+#+end_src
+
+** Using leaf.el
+
+#+begin_src emacs-lisp
+(leaf eglot-lsp-settings :ensure t)
+#+end_src
+
+** Using use-package
+
+#+begin_src emacs-lisp
+(use-package eglot-lsp-settings
+  :ensure t)
 #+end_src
 
 * Usage
 
-* Customize
+To install a language server, run:
 
-* Information
-** Community
-Any feedback or suggestions are welcome!
-
-You can use github issues, but you can also use [[https://conao3-support.slack.com/join/shared_invite/enQtNjUzMDMxODcyMjE1LWUwMjhiNTU3Yjk3ODIwNzAxMTgwOTkxNmJiN2M4OTZkMWY0NjI4ZTg4MTVlNzcwNDY2ZjVjYmRiZmJjZDU4MDE][Slack]]
-if you want a more casual conversation.
-
-** Contribution
-We welcome PR!
-
-*** Require tools for testing
-- keg
-  #+begin_src shell
-    cd ~/
-    hub clone conao3/keg .keg
-    export PATH="$HOME/.keg/bin:$PATH"
-  #+end_src
-
-*** Running test
-Below operation flow is recommended.
-#+begin_src shell
-  git branch [feature-branch]       # Create branch named [feature-branch]
-  git checkout [feature-branch]     # Checkout branch named [feature-branch]
-
-  # <edit loop>
-  emacs eglot-lsp-settings.el             # Edit something you want
-
-  make test                         # Test eglot-lsp-settings
-  git commit -am "brabra"           # Commit (auto-run test before commit)
-  # </edit loop>
-
-  hub fork                          # Create fork at GitHub
-  git push [user] [feature-branch]  # Push feature-branch to your fork
-  hub pull-request                  # Create pull-request
+#+begin_src
+M-x eglot-lsp-settings-install-server
 #+end_src
 
-** Migration
+Select the desired server from the completion list. The installation progress is displayed in the =*eglot-lsp-settings*= buffer.
 
-** License
-#+begin_example
-  General Public License Version 3 (GPLv3)
-  Copyright (c) Naoya Yamashita - https://conao3.com
-  https://github.com/conao3/eglot-lsp-settings.el/blob/master/LICENSE
-#+end_example
+After installation, start Eglot in your project with =M-x eglot=.
 
-** Author
-- Naoya Yamashita ([[https://github.com/conao3][conao3]])
+* Configuration
 
-** Contributors
+** Custom Installation Directory
+
+#+begin_src emacs-lisp
+(setq eglot-lsp-settings-dir (expand-file-name "~/.local/share/eglot-lsp-settings"))
+#+end_src
+
+* Contributing
+
+Contributions are welcome. Please open an issue or submit a pull request on [[https://github.com/conao3/eglot-lsp-settings.el][GitHub]].
+
+** Development Setup
+
+1. Clone the repository
+2. Install [[https://github.com/conao3/keg][keg]] for running tests
+
+#+begin_src shell
+git clone https://github.com/conao3/keg ~/.keg
+export PATH="$HOME/.keg/bin:$PATH"
+#+end_src
+
+** Running Tests
+
+#+begin_src shell
+make test
+#+end_src
+
+* License
+
+GPL-3.0. See [[https://github.com/conao3/eglot-lsp-settings.el/blob/master/LICENSE][LICENSE]] for details.
+
+* Author
+
+Naoya Yamashita ([[https://github.com/conao3][conao3]])
