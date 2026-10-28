@@ -25,7 +25,7 @@ jobs:
           version: ${{ matrix.emacs_version }}
       - name: Install keg
         run: |
-          git clone --depth 1 https://github.com/conao3/keg "$HOME/.keg"
+          git clone --depth 1 https://github.com/conao3/keg.el "$HOME/.keg"
           echo "$HOME/.keg/bin" >> "$GITHUB_PATH"
 
       - name: Run tests
